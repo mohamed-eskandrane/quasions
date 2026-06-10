@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(error => console.error(error));
       }
       
-function waitForElement(selector, callback, timeout = 10000) {
+function waitForElement(selector, callback, timeout = 15000) {
   const startTime = Date.now();
   const interval = setInterval(() => {
     const element = document.querySelector(selector);
