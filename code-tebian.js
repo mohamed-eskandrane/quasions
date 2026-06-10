@@ -84,4 +84,5 @@ document.querySelector('#tile-feature-list-tXtiuZ .ins-tile__wrap.ins-tile__anim
   showqu();
   return observer;
 }
+   observeProductTitleChange();
 })
