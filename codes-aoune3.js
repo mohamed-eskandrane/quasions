@@ -64,7 +64,7 @@ function waitForElement(selector, callback, timeout = 15000) {
     }
   } 
 
-document.querySelector('#tile-feature-list-tXtiuZ .ins-tile__wrap.ins-tile__animated').style.display="block";
+document.querySelector('#tile-feature-list-2gGUwN .ins-tile__wrap.ins-tile__animated').style.display="block";
 })}
  function observeProductTitleChange() {
   const targetNode = document.body;
