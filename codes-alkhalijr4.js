@@ -57,9 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // محاولة إضافة الخريطة داخل العنصر الداخلي
-    const addedContent = document.querySelector(TARGET_SELECTOR + ' .ins-tile__body.ins-tile__animated');
+    const addedContent = document.querySelector(TARGET_SELECTOR + ' .ins-tile__animated');
     if (addedContent) {
-      addedContent.insertAdjacentHTML('afterbegin', iframe);
+      addedContent.insertAdjacentHTML('beforeend', iframe);
         const el2=document.querySelector(".ins-tile__row-inner.ins-component__social-profiles")
     if(el2){
      el2.insertAdjacentHTML("beforeend", el);
