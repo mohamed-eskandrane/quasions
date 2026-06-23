@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     fetch('https://aouenshop.com/footer_div')
       .then(response => response.text())
       .then(html => {
+         console.error(html);
         footerElement.insertAdjacentHTML('beforebegin', html);
         const addedContent = document.querySelector('#tile-location-mVM3dX .ins-tile__animated');
         if (addedContent) {
