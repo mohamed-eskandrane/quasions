@@ -37,7 +37,7 @@ function waitForElement(selector, callback, timeout = 15000) {
         const productName = proN.textContent.trim();
   if (mydata && Array.isArray(mydata) && mydata.length) {
   const filteredData = mydata.filter(item => item.package === productName);
-    const faqContainer = document.querySelector('.ins-accordion.ins-accordion--with-margin');
+    const faqContainer = document.querySelector('.ins-accordion');
     faqContainer.innerHTML = '';
     if (filteredData.length > 0 && faqContainer) {
         filteredData.forEach((item, index) => {
