@@ -193,9 +193,9 @@ function waitForElement(selector, callback, timeout = 15000) {
         faqContainer.appendChild(faqItem);
       });
     }
-  } 
-
-document.querySelector('#tile-feature-list-2gGUwN .ins-tile__wrap.ins-tile__animated').style.display="block";
+  }
+var element=".section__container";
+document.querySelector('#tile-feature-list-2gGUwN ' + element).style.display="block";
 })}
  function observeProductTitleChange() {
   const targetNode = document.body;
