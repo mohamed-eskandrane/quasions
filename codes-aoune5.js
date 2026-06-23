@@ -6,10 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
   fetch('https://aouenshop.com/footer_div')
     .then(response => response.text())
     .then(html => {
-      var fEl = document.querySelector('footer');
-      if (fEl) {
-        fEl.insertAdjacentHTML('beforebegin', html);
-        var aCon = document.querySelector('#tile-feature-list-2gGUwN .ins-tile__animated');
+      footerElement.insertAdjacentHTML('beforebegin', html);
+      var aCon = document.querySelector('#tile-feature-list-2gGUwN .ins-tile__animated');
+      if (aCon) { 
         var iframe = `<div aria-label="Map with a location pin" role="img" class="ins-tile__map ins-tile__animated"><div class="ins-tile__map-frame-wrapper ins-iframe-overlay"><iframe allowfullscreen="" loading="lazy" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCNCmAGyN4bJYu5qeLgbASzZafm-M5TA_o&amp;language=en&amp;zoom=16&amp;maptype=roadmap&amp;q=HCVH%2B6V+Muscat%2C+Oman" class="ins-tile__map-frame"></iframe></div></div>`
         aCon.insertAdjacentHTML('afterbegin', iframe);
         }
