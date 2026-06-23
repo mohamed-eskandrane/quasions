@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error('حدث خطأ أثناء تحميل محتوى الفوتر:', error);
       }
     }
+   loadFooterContent()
   } 
   
 function waitForElement(selector, callback, timeout = 15000) {
