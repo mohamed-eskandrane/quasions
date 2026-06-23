@@ -3,52 +3,71 @@ document.addEventListener("DOMContentLoaded", () => {
   arLang ?  document.body.classList.add("lang-ar") : document.body.classList.add("lang-en");
   const footerElement = document.querySelector('footer');
  if (footerElement) {
-const iframe = `<div aria-label="Map with a location pin" role="img" class="ins-tile__map ins-tile__animated"><div class="ins-tile__map-frame-wrapper ins-iframe-overlay"><iframe allowfullscreen="" loading="lazy" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCNCmAGyN4bJYu5qeLgbASzZafm-M5TA_o&amp;language=en&amp;zoom=16&amp;maptype=roadmap&amp;q=HCVH%2B6V+Muscat%2C+Oman" class="ins-tile__map-frame"></iframe></div></div>`;
- const FOOTER_HTML_URL = 'https://aouenshop.com/footer_div';
-  const CHECK_INTERVAL = 500;         // نصف ثانية بين كل محاولة
-  const MAX_DURATION_MS = 5 * 60 * 1000; // 5 دقائق بالميلي ثانية
-  const TARGET_SELECTOR = '#tile-location-mVM3dX'; // العنصر الذي نبحث عنه
-  let cachedHtml = null;            // نخزن المحتوى المُجلَب لتجنب طلبات شبكة متكررة
-  let startTime = Date.now();       // وقت بدء المحاولات
-  let intervalId = null;            // معرف المؤقت
+  const iframe = `<div aria-label="Map with a location pin" role="img" class="ins-tile__map ins-tile__animated"><div class="ins-tile__map-frame-wrapper ins-iframe-overlay"><iframe allowfullscreen="" loading="lazy" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCNCmAGyN4bJYu5qeLgbASzZafm-M5TA_o&amp;language=en&amp;zoom=16&amp;maptype=roadmap&amp;q=HCVH%2B6V+Muscat%2C+Oman" class="ins-tile__map-frame"></iframe></div></div>`;
+  const FOOTER_HTML_URL = 'https://aouenshop.com/footer_div';
+  const CHECK_INTERVAL = 500;                // نصف ثانية بين كل فحص
+  const MAX_DURATION_MS = 5 * 60 * 1000;     // 5 دقائق كحد أقصى كلي
+  const EXTRA_WATCH_DURATION_MS = 60 * 1000; // دقيقة إضافية بعد أول ظهور
+  const TARGET_SELECTOR = '#tile-location-mVM3dX';
+  let cachedHtml = null;          // المحتوى المُجلَب (لتجنب طلبات شبكة متكررة)
+  let startTime = Date.now();     // وقت بدء المحاولات
+  let foundOnce = false;          // هل تم العثور على العنصر ولو مرة؟
+  let foundStartTime = null;      // وقت أول ظهور للعنصر
+  let intervalId = null;
+  function insertFooterContent(footerElement) {
+    if (cachedHtml === null) {
+      console.warn('[Ecwid Fix] لا يوجد محتوى مخزن، لا يمكن الإدراج.');
+      return false;
+    }
+    if (document.querySelector(TARGET_SELECTOR)) {
+      return true; // موجود بالفعل
+    }
+    footerElement.insertAdjacentHTML('beforebegin', cachedHtml);
+    console.log('[Ecwid Fix] تم إدراج HTML الأساسي (لأن العنصر اختفى).');
+    const addedContent = document.querySelector(TARGET_SELECTOR + ' .ins-tile__animated');
+    if (addedContent) {
+      addedContent.insertAdjacentHTML('afterbegin', iframe);
+      console.log('[Ecwid Fix] ✅ تم إعادة إدراج الخريطة.');
+      showqu();
+    } else {
+      console.warn('[Ecwid Fix] تم إدراج HTML لكن لم نجد العنصر الداخلي .ins-tile__animated');
+    }
+    return true;
+  }
   function tryAddFooter() {
     const elapsed = Date.now() - startTime;
     if (elapsed >= MAX_DURATION_MS) {
-      console.warn('[Ecwid Fix] ⏹️ انتهت المدة القصوى (5 دقائق)، توقف عن المحاولة.');
+      console.warn('[Ecwid Fix] ⏹️ انتهت المدة القصوى (5 دقائق)، توقف.');
       clearInterval(intervalId);
       return;
     }
+
     const existingTarget = document.querySelector(TARGET_SELECTOR);
-    if (existingTarget) {
-      console.log('[Ecwid Fix] ✅ العنصر المطلوب موجود بالفعل. إيقاف المراقبة.');
-      clearInterval(intervalId);
+    if (existingTarget && !foundOnce) {
+      foundOnce = true;
+      foundStartTime = Date.now();
+      console.log('[Ecwid Fix] ✅ العنصر ظهر لأول مرة. بدء المراقبة الإضافية لمدة دقيقة.');
       return;
     }
-    console.log('[Ecwid Fix] 🚀 جاري محاولة إدراج المحتوى (المدة المنقضية: ' + (elapsed / 1000) + ' ثانية)');
-    function insertContent(html) {
-      if (document.querySelector(TARGET_SELECTOR)) {
-        console.log('[Ecwid Fix] تم إدراج المحتوى بواسطة جهة أخرى، أوقف.');
+    if (foundOnce) {
+      if (Date.now() - foundStartTime >= EXTRA_WATCH_DURATION_MS) {
+        console.log('[Ecwid Fix] ⏹️ انتهت الدقيقة الإضافية بعد أول ظهور. توقف نهائياً.');
         clearInterval(intervalId);
         return;
       }
-      footerElement.insertAdjacentHTML('beforebegin', html);
-      console.log('[Ecwid Fix] تم إدراج HTML الأساسي.');
-      const addedContent = document.querySelector(TARGET_SELECTOR + ' .ins-tile__animated');
-      if (addedContent) {
-        
-        addedContent.insertAdjacentHTML('afterbegin', iframe);
-        console.log('[Ecwid Fix] ✅ تم إدراج الخريطة بنجاح!');
-        clearInterval(intervalId);
-        if (typeof showqu === 'function') {
-          showqu();
-        }
-      } else {
-        console.warn('[Ecwid Fix] تم إدراج HTML لكن لم نجد العنصر الداخلي .ins-tile__animated، ربما تغير الهيكل.');
+      if (existingTarget) {
+        console.log('[Ecwid Fix] العنصر موجود حالياً، ننتظر...');
+        return;
       }
+      console.warn('[Ecwid Fix] العنصر اختفى! نحاول إعادة إدراجه...');
+      if (footerElement) {
+        insertFooterContent(footerElement);
+      } else {
+        console.warn('[Ecwid Fix] footer غير موجود حالياً، لا يمكن إعادة الإدراج.');
+      }
+      return;
     }
-    if (cachedHtml) {
-      insertContent(cachedHtml);
-    } else {
+    if (cachedHtml === null) {
       console.log('[Ecwid Fix] جلب المحتوى من الخادم لأول مرة...');
       fetch(FOOTER_HTML_URL)
         .then(response => {
@@ -56,14 +75,19 @@ const iframe = `<div aria-label="Map with a location pin" role="img" class="ins-
           return response.text();
         })
         .then(html => {
-          cachedHtml = html; // تخزين
-          insertContent(html);
+          cachedHtml = html;
+          insertFooterContent(footerElement);
         })
         .catch(error => {
           console.error('[Ecwid Fix] خطأ في الجلب:', error);
         });
+    } else {
+      insertFooterContent(footerElement);
     }
   }
+
+  intervalId = setInterval(tryAddFooter, CHECK_INTERVAL);
+  tryAddFooter(); // تشغيل المحاولة الأولى فوراً
   intervalId = setInterval(tryAddFooter, CHECK_INTERVAL);
   tryAddFooter();
   } 
