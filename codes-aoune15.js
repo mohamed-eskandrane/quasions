@@ -59,8 +59,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // محاولة إضافة الخريطة داخل العنصر الداخلي
     const addedContent = document.querySelector(TARGET_SELECTOR + ' .ins-tile__animated');
     if (addedContent) {
-      const iframe = `<div aria-label="Map with a location pin" role="img" class="ins-tile__map ins-tile__animated"><div class="ins-tile__map-frame-wrapper ins-iframe-overlay"><iframe allowfullscreen="" loading="lazy" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCNCmAGyN4bJYu5qeLgbASzZafm-M5TA_o&amp;language=en&amp;zoom=16&amp;maptype=roadmap&amp;q=HCVH%2B6V+Muscat%2C+Oman" class="ins-tile__map-frame"></iframe></div></div>`;
       addedContent.insertAdjacentHTML('afterbegin', iframe);
+      showqu();
       console.log('[Ecwid Fix] ✅ تم إدراج الخريطة.');
     } else {
       console.warn('[Ecwid Fix] تم إدراج HTML لكن لم نجد العنصر الداخلي .ins-tile__animated');
