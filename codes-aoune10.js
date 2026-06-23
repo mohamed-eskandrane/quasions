@@ -2,22 +2,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const arLang = document.querySelector('.ins-header__language-link--active[aria-label="AR"]');
   arLang ?  document.body.classList.add("lang-ar") : document.body.classList.add("lang-en");
   const footerElement = document.querySelector('footer');
-  if (footerElement) {
-    fetch('https://aouenshop.com/footer_div')
-      .then(response => response.text())
-      .then(html => {
-         console.error(html);
-        footerElement.insertAdjacentHTML('beforebegin', html);
-        const addedContent = document.querySelector('#tile-location-mVM3dX .ins-tile__animated');
-        if (addedContent) {
-          var iframe = `<div aria-label="Map with a location pin" role="img" class="ins-tile__map ins-tile__animated"><div class="ins-tile__map-frame-wrapper ins-iframe-overlay"><iframe allowfullscreen="" loading="lazy" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCNCmAGyN4bJYu5qeLgbASzZafm-M5TA_o&amp;language=en&amp;zoom=16&amp;maptype=roadmap&amp;q=HCVH%2B6V+Muscat%2C+Oman" class="ins-tile__map-frame"></iframe></div></div>`
-          addedContent.insertAdjacentHTML('afterbegin', iframe);
+
+ if (footerElement) {
+    async function loadFooterContent() {
+      try {
+        const response = await fetch('https://aouenshop.com/footer_div');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        showqu();
-})
-      .catch(error => console.error(error));
+        const html = await response.text();
+        footerElement.insertAdjacentHTML('beforebegin', html);
+        requestAnimationFrame(() => {
+          const addedContent = document.querySelector('#tile-location-mVM3dX .ins-tile__animated');
+          if (addedContent) {
+            var iframe = `<div aria-label="Map with a location pin" role="img" class="ins-tile__map ins-tile__animated"><div class="ins-tile__map-frame-wrapper ins-iframe-overlay"><iframe allowfullscreen="" loading="lazy" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCNCmAGyN4bJYu5qeLgbASzZafm-M5TA_o&amp;language=en&amp;zoom=16&amp;maptype=roadmap&amp;q=HCVH%2B6V+Muscat%2C+Oman" class="ins-tile__map-frame"></iframe></div></div>`;
+            addedContent.insertAdjacentHTML('afterbegin', iframe);
+          }
+            showqu();
+        });
+
+      } catch (error) {
+        console.error('حدث خطأ أثناء تحميل محتوى الفوتر:', error);
       }
-      
+    }
+  } 
+  
 function waitForElement(selector, callback, timeout = 15000) {
   const startTime = Date.now();
   const interval = setInterval(() => {
