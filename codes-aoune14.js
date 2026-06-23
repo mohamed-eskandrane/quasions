@@ -1,41 +1,79 @@
 document.addEventListener("DOMContentLoaded", () => {
   const arLang = document.querySelector('.ins-header__language-link--active[aria-label="AR"]');
   arLang ?  document.body.classList.add("lang-ar") : document.body.classList.add("lang-en");
-  const footerElement = document.querySelector('footer');
- if (footerElement) {
+
   const iframe = `<div aria-label="Map with a location pin" role="img" class="ins-tile__map ins-tile__animated"><div class="ins-tile__map-frame-wrapper ins-iframe-overlay"><iframe allowfullscreen="" loading="lazy" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCNCmAGyN4bJYu5qeLgbASzZafm-M5TA_o&amp;language=en&amp;zoom=16&amp;maptype=roadmap&amp;q=HCVH%2B6V+Muscat%2C+Oman" class="ins-tile__map-frame"></iframe></div></div>`;
   const FOOTER_HTML_URL = 'https://aouenshop.com/footer_div';
-  const CHECK_INTERVAL = 500;                // نصف ثانية بين كل فحص
-  const MAX_DURATION_MS = 5 * 60 * 1000;     // 5 دقائق كحد أقصى كلي
+  const CHECK_INTERVAL = 500;                // نصف ثانية
+  const MAX_DURATION_MS = 5 * 60 * 1000;     // 5 دقائق كحد أقصى
   const EXTRA_WATCH_DURATION_MS = 60 * 1000; // دقيقة إضافية بعد أول ظهور
   const TARGET_SELECTOR = '#tile-location-mVM3dX';
-  let cachedHtml = null;          // المحتوى المُجلَب (لتجنب طلبات شبكة متكررة)
-  let startTime = Date.now();     // وقت بدء المحاولات
-  let foundOnce = false;          // هل تم العثور على العنصر ولو مرة؟
-  let foundStartTime = null;      // وقت أول ظهور للعنصر
+
+  let cachedHtml = null;
+  let startTime = Date.now();
+  let foundOnce = false;
+  let foundStartTime = null;
   let intervalId = null;
+
+  // ---------- دالة آمنة لإدراج المحتوى (تتجنب الخطأ) ----------
   function insertFooterContent(footerElement) {
+    if (!footerElement) {
+      console.warn('[Ecwid Fix] footerElement غير موجود، لا يمكن الإدراج.');
+      return false;
+    }
+
     if (cachedHtml === null) {
       console.warn('[Ecwid Fix] لا يوجد محتوى مخزن، لا يمكن الإدراج.');
       return false;
     }
+
+    // تجنب الإدراج المزدوج (تحقق سريع)
     if (document.querySelector(TARGET_SELECTOR)) {
       return true; // موجود بالفعل
     }
-    footerElement.insertAdjacentHTML('beforebegin', cachedHtml);
-    console.log('[Ecwid Fix] تم إدراج HTML الأساسي (لأن العنصر اختفى).');
+
+    // **الجزء الأهم**: نتحقق من وجود الأب
+    const parent = footerElement.parentNode;
+    if (!parent) {
+      console.warn('[Ecwid Fix] footerElement ليس له أب (مفصول عن DOM)، لن نتمكن من الإدراج.');
+      return false;
+    }
+
+    try {
+      // الطريقة الآمنة: الإدراج قبل الـ footer مباشرة باستخدام الأب
+      // نحول HTML إلى عناصر فعلية
+      const tempContainer = document.createElement('div');
+      tempContainer.innerHTML = cachedHtml;
+
+      // ننقل جميع أبناء tempContainer ليصبحوا قبل footerElement
+      while (tempContainer.firstChild) {
+        parent.insertBefore(tempContainer.firstChild, footerElement);
+      }
+
+      console.log('[Ecwid Fix] تم إدراج HTML الأساسي بنجاح (باستخدام insertBefore).');
+    } catch (error) {
+      console.error('[Ecwid Fix] فشل إدراج المحتوى:', error);
+      return false;
+    }
+
+    // محاولة إضافة الخريطة داخل العنصر الداخلي
     const addedContent = document.querySelector(TARGET_SELECTOR + ' .ins-tile__animated');
     if (addedContent) {
+      const iframe = `<div aria-label="Map with a location pin" role="img" class="ins-tile__map ins-tile__animated"><div class="ins-tile__map-frame-wrapper ins-iframe-overlay"><iframe allowfullscreen="" loading="lazy" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCNCmAGyN4bJYu5qeLgbASzZafm-M5TA_o&amp;language=en&amp;zoom=16&amp;maptype=roadmap&amp;q=HCVH%2B6V+Muscat%2C+Oman" class="ins-tile__map-frame"></iframe></div></div>`;
       addedContent.insertAdjacentHTML('afterbegin', iframe);
-      console.log('[Ecwid Fix] ✅ تم إعادة إدراج الخريطة.');
-      showqu();
+      console.log('[Ecwid Fix] ✅ تم إدراج الخريطة.');
     } else {
       console.warn('[Ecwid Fix] تم إدراج HTML لكن لم نجد العنصر الداخلي .ins-tile__animated');
     }
+
     return true;
   }
+
+  // ---------- الدالة الأساسية التي تُنفذ كل فترة ----------
   function tryAddFooter() {
     const elapsed = Date.now() - startTime;
+
+    // 1. التحقق من انتهاء المدة القصوى (5 دقائق)
     if (elapsed >= MAX_DURATION_MS) {
       console.warn('[Ecwid Fix] ⏹️ انتهت المدة القصوى (5 دقائق)، توقف.');
       clearInterval(intervalId);
@@ -43,22 +81,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const existingTarget = document.querySelector(TARGET_SELECTOR);
+    const footerElement = document.querySelector('footer');
+
+    // 2. حالة الظهور لأول مرة
     if (existingTarget && !foundOnce) {
       foundOnce = true;
       foundStartTime = Date.now();
       console.log('[Ecwid Fix] ✅ العنصر ظهر لأول مرة. بدء المراقبة الإضافية لمدة دقيقة.');
+      // نستمر في المراقبة (لا نوقف)
       return;
     }
+
+    // 3. مرحلة ما بعد الظهور الأول (foundOnce === true)
     if (foundOnce) {
+      // انتهت الدقيقة الإضافية؟
       if (Date.now() - foundStartTime >= EXTRA_WATCH_DURATION_MS) {
-        console.log('[Ecwid Fix] ⏹️ انتهت الدقيقة الإضافية بعد أول ظهور. توقف نهائياً.');
+        console.log('[Ecwid Fix] ⏹️ انتهت الدقيقة الإضافية. توقف نهائياً.');
         clearInterval(intervalId);
         return;
       }
+
+      // إذا كان العنصر موجوداً الآن، نتركه
       if (existingTarget) {
-        console.log('[Ecwid Fix] العنصر موجود حالياً، ننتظر...');
+        console.log('[Ecwid Fix] العنصر موجود حالياً، لا حاجة للإدراج.');
         return;
       }
+
+      // العنصر اختفى → نحاول إعادة إدراجه
       console.warn('[Ecwid Fix] العنصر اختفى! نحاول إعادة إدراجه...');
       if (footerElement) {
         insertFooterContent(footerElement);
@@ -67,6 +116,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       return;
     }
+
+    // 4. لم نجد العنصر ولم نره من قبل (foundOnce === false)
+    if (!footerElement) {
+      console.log('[Ecwid Fix] ⏳ footer غير موجود، انتظر الدورة القادمة.');
+      return;
+    }
+
+    // نحتاج إلى جلب المحتوى (إن لم يكن مخزناً)
     if (cachedHtml === null) {
       console.log('[Ecwid Fix] جلب المحتوى من الخادم لأول مرة...');
       fetch(FOOTER_HTML_URL)
@@ -82,15 +139,15 @@ document.addEventListener("DOMContentLoaded", () => {
           console.error('[Ecwid Fix] خطأ في الجلب:', error);
         });
     } else {
+      // لدينا محتوى مخزن، نضيفه مباشرة
       insertFooterContent(footerElement);
     }
   }
 
+  // ---------- بدء التشغيل ----------
   intervalId = setInterval(tryAddFooter, CHECK_INTERVAL);
-  tryAddFooter(); // تشغيل المحاولة الأولى فوراً
-  intervalId = setInterval(tryAddFooter, CHECK_INTERVAL);
-  tryAddFooter();
-  } 
+  tryAddFooter(); // تنفيذ المحاولة الأولى فوراً
+
   
 function waitForElement(selector, callback, timeout = 15000) {
   const startTime = Date.now();
