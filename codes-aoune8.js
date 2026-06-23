@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   arLang ?  document.body.classList.add("lang-ar") : document.body.classList.add("lang-en");
   const footerElement = document.querySelector('footer');
   if (footerElement) {
-    fetch('https://tebianprinting.com/footer_div')
+    fetch('https://aouenshop.com/footer_div')
       .then(response => response.text())
       .then(html => {
         footerElement.insertAdjacentHTML('beforebegin', html);
